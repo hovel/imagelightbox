@@ -56,8 +56,9 @@
                          {
                             selector:       'id="imagelightbox"',
                             allowedTypes:   'png|jpg|jpeg|gif',
+                            zoomScale:      [],
                             animationSpeed: 250,
-                            preloadNext:    true,
+                            preloadNext:    1,
                             enableKeyboard: true,
                             quitOnEnd:      false,
                             quitOnImgClick: false,
@@ -76,10 +77,28 @@
             imageHeight = 0,
             swipeDiff   = 0,
             inProgress  = false,
+            zoom        = 1,
 
-            isTargetValid = function (element)
-            {
+            isTargetValid = function (element) {
                 return $(element).prop('tagName').toLowerCase() == 'a' && (new RegExp('\.(' + options.allowedTypes + ')$', 'i')).test($(element).attr('href'));
+            },
+
+            getZoom = function () {
+                for (var i = options.zoomScale.length - 1; i >= 0; i--) {
+                    if (window.devicePixelRatio >= options.zoomScale[i]) {
+                        return options.zoomScale[i];
+                    }
+                }
+                return 1;
+            },
+
+            getImageSrc = function (target) {
+                var src = target.attr('href');
+                if (zoom == 1) {
+                    return src;
+                }
+                var suffix = '.' + src.split('.').slice(-1)[0];
+                return src.replace(suffix, '@' + zoom + 'x' + suffix);
             },
 
             setImage = function ()
@@ -93,8 +112,8 @@
                 tmpImage.src    = image.attr('src');
                 tmpImage.onload = function ()
                 {
-                    imageWidth   = tmpImage.width;
-                    imageHeight  = tmpImage.height;
+                    imageWidth   = tmpImage.width / zoom;
+                    imageHeight  = tmpImage.height / zoom;
 
                     if (imageWidth > screenWidth || imageHeight > screenHeight)
                     {
@@ -117,18 +136,29 @@
             {
                 if (inProgress) return false;
 
-                direction = typeof direction === 'undefined' ? false : direction == 'left' ? 1 : -1;
+                var directionLoad = 1,
+                    directionAnimation = false;
+                if (typeof direction != 'undefined') {
+                    if (direction == 'left') {
+                        directionLoad = -1;
+                        directionAnimation = 1;
+                    } else {
+                        directionAnimation = -1;
+                    }
+                }
+
+                var targetIndex = targets.index(target);
 
                 if (image.length)
                 {
-                    if (direction !== false && (targets.length < 2 || (options.quitOnEnd === true && ((direction === -1 && targets.index(target) == 0) || (direction === 1 && targets.index(target) == targets.length - 1)))))
+                    if (directionAnimation !== false && (targets.length < 2 || (options.quitOnEnd === true && ((directionAnimation === -1 && targetIndex == 0) || (directionAnimation === 1 && targetIndex == targets.length - 1)))))
                     {
                         quitLightbox();
                         return false;
                     }
                     var params = {'opacity': 0};
-                    if (isCssTransitionSupport) cssTransitionTranslateX(image, (100 * direction) - swipeDiff + 'px', options.animationSpeed / 1000);
-                    else params.left = parseInt(image.css('left')) + 100 * direction + 'px';
+                    if (isCssTransitionSupport) cssTransitionTranslateX(image, (100 * directionAnimation) - swipeDiff + 'px', options.animationSpeed / 1000);
+                    else params.left = parseInt(image.css('left')) + 100 * directionAnimation + 'px';
                     image.animate(params, options.animationSpeed, function (){removeImage();});
                     swipeDiff = 0;
                 }
@@ -138,8 +168,11 @@
 
                 setTimeout(function ()
                 {
+                    zoom = getZoom();
+
                     image = $('<img ' + options.selector + ' />')
-                    .attr('src', target.attr('href'))
+                    .attr('src', getImageSrc(target))
+                    .data('index', targetIndex)
                     .load(function ()
                     {
                         image.appendTo('body');
@@ -150,14 +183,14 @@
                         image.css('opacity', 0);
                         if (isCssTransitionSupport)
                         {
-                            cssTransitionTranslateX(image, -100 * direction + 'px', 0);
+                            cssTransitionTranslateX(image, -100 * directionAnimation + 'px', 0);
                             setTimeout(function (){cssTransitionTranslateX(image, 0 + 'px', options.animationSpeed / 1000)}, 50);
                         }
                         else
                         {
                             var imagePosLeft = parseInt(image.css('left'));
                             params.left = imagePosLeft + 'px';
-                            image.css('left', imagePosLeft - 100 * direction + 'px');
+                            image.css('left', imagePosLeft - 100 * directionAnimation + 'px');
                         }
 
                         image.animate(params, options.animationSpeed, function ()
@@ -165,17 +198,23 @@
                             inProgress = false;
                             if (options.onLoadEnd !== false) options.onLoadEnd();
                         });
-                        if (options.preloadNext)
-                        {
-                            var nextTarget = targets.eq(targets.index(target) + 1);
-                            if (!nextTarget.length) nextTarget = targets.eq(0);
-                            $('<img />').attr('src', nextTarget.attr('href')).load();
+                        if (options.preloadNext > 0) {
+                            for (var i = 1; i <= options.preloadNext; i++) {
+                                var nextTargetIndex = targetIndex + i * directionLoad;
+                                if (nextTargetIndex > targets.length - 1) {
+                                    nextTargetIndex = nextTargetIndex - targets.length;
+                                } else if (nextTargetIndex < 0) {
+                                    nextTargetIndex = nextTargetIndex + targets.length;
+                                }
+                                var nextTarget = targets.eq(nextTargetIndex);
+                                $('<img />').attr('src', getImageSrc(nextTarget)).load();
+                            }
                         }
                     })
                     .error(function ()
                     {
                         if (options.onLoadEnd !== false) options.onLoadEnd();
-                    })
+                    });
 
                     var swipeStart   = 0,
                         swipeEnd     = 0,
