@@ -3,7 +3,7 @@
 
     $.fn.imageLightboxExtended = function (options, plugins) {
         var options = options || {},
-            plugins = plugins || [],
+            plugins = plugins || ['overlay', 'closeButton', 'arrows', 'activityIndicator'],
             extensions = {
                 quitOnDocClick: plugins.indexOf('closeButton') == -1,
                 onStart: function () {
