@@ -16,6 +16,9 @@
 
 /* ACTIVITY INDICATION */
 
+#imagelightbox-loading {
+    font-size: 16px;
+}
 #imagelightbox-loading,
 #imagelightbox-loading div
 {
@@ -85,6 +88,7 @@
     text-align: left;
     background-color: #666;
     border: 0;
+    outline: 0;
     border-radius: 50%;
     position: fixed;
     z-index: 10002;
@@ -183,6 +187,7 @@
     background-color: #444;
     background-color: rgba( 0, 0, 0, .5 );
     border: 0;
+    outline: 0;
     vertical-align: middle;
     display: none;
     position: fixed;
