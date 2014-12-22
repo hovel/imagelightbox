@@ -139,6 +139,10 @@
     /* ARROWS */
 
     function arrowsOn(instance, selector) {
+        if ($(selector).length < 2) {
+            return;
+        }
+
         var $arrows = $(
             '<button type="button" class="imagelightbox-arrow imagelightbox-arrow-left"></button>' +
             '<button type="button" class="imagelightbox-arrow imagelightbox-arrow-right"></button>'
