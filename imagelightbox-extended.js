@@ -9,7 +9,7 @@
                 onStart: function () {
                     if (plugins.indexOf('overlay') != -1) overlayOn();
                     if (plugins.indexOf('closeButton') != -1) closeButtonOn(lightbox);
-                    if (plugins.indexOf('arrows') != -1) arrowsOn(lightbox, selector);
+                    if (plugins.indexOf('arrows') != -1) arrowsOn(lightbox);
                     if (plugins.indexOf('navigation') != -1) navigationOn(lightbox, selector);
 
                     if (typeof options.onStart != 'undefined') options.onStart();
@@ -138,8 +138,8 @@
 
     /* ARROWS */
 
-    function arrowsOn(instance, selector) {
-        if ($(selector).length < 2) {
+    function arrowsOn(instance) {
+        if (instance.targetsLength() < 2) {
             return;
         }
 
@@ -153,22 +153,12 @@
         $arrows.on('click touchend', function (e) {
             e.preventDefault();
 
-            var $this = $(this),
-                index = $('#imagelightbox').data('index');
-
-            if ($this.hasClass('imagelightbox-arrow-left')) {
-                index = index - 1;
-                if (!$(selector).eq(index).length) {
-                    index = $(selector).length;
-                }
+            if ($(this).hasClass('imagelightbox-arrow-left')) {
+                instance.switchImageLightbox('left');
             } else {
-                index = index + 1;
-                if (!$(selector).eq(index).length) {
-                    index = 0;
-                }
+                instance.switchImageLightbox('right');
             }
 
-            instance.switchImageLightbox(index);
             return false;
         });
     }
