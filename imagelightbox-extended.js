@@ -1,6 +1,12 @@
 ;(function ($, window, document, undefined) {
     'use strict';
 
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function(val) {
+            return $.inArray(val, this);
+        }
+    }
+
     $.fn.imageLightboxExtended = function (options, plugins) {
         var options = options || {},
             plugins = plugins || ['overlay', 'closeButton', 'arrows', 'activityIndicator'],
