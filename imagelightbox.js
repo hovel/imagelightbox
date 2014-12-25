@@ -168,6 +168,8 @@
                         'top':    ($(window).height() - imageHeight) / 2 + 'px',
                         'left':   ($(window).width() - imageWidth) / 2 + 'px'
                     });
+
+                    image.show();
                 };
             },
 
@@ -208,12 +210,11 @@
                 setTimeout(function () {
                     zoom = getZoom();
 
-                    image = $('<img id="imagelightbox" />')
+                    image = $('<img id="imagelightbox" style="display: none" />')
                     .attr('src', getImageSrc(target))
                     .load(function () {
-                        image.hide().appendTo('body');
+                        image.appendTo('body');
                         setImage();
-                        image.show();
 
                         var params = {'opacity': 1};
 
