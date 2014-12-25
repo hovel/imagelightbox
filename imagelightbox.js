@@ -52,26 +52,30 @@
 
     $.fn.imageLightbox = function (options)
     {
-        var options    = $.extend(
-                         {
-                            selector:       'id="imagelightbox"',
-                            allowedTypes:   'png|jpg|jpeg|gif',
-                            groupByClosest: false,
-                            zoomScale:      [],
-                            animationSpeed: 250,
-                            preloadNext:    1,
-                            enableKeyboard: true,
-                            quitOnEnd:      false,
-                            quitOnImgClick: false,
-                            quitOnDocClick: true,
-                            onStart:        false,
-                            onEnd:          false,
-                            onLoadStart:    false,
-                            onLoadEnd:      false
-                         },
-                         options),
+        var options = $.extend({
+                selector: 'id="imagelightbox"',
+                dynamicalTargets: false,  // recollect targets before open lightbox
+                allowedTypes: 'png|jpg|jpeg|gif',
+                groupByClosest: false,  // '.class' - selector to grouping elements
+                                        // into separate slideshow by elements'
+                                        // parent or by elements themself;
+                                        // selected element must have data-lightbox-group
+                                        // attribute with slideshow number or another divider
+                zoomScale: [],  // [2, 3] - HiDPI alternatives list, alternative has
+                                // same address with special suffix, @2x.png for example
+                animationSpeed: 250,
+                preloadNext: 1,  // silently preload the next _ images
+                enableKeyboard: true,  // enable keyboard shortcuts (arrows Left/Right and Esc)
+                quitOnEnd: false,  // quit after viewing the last image
+                quitOnImgClick: false,  // quit when the viewed image is clicked
+                quitOnDocClick: true,  // quit when anything but the viewed image is clicked
+                onStart: false,  // calls function when the lightbox starts
+                onEnd: false,  // calls function when the lightbox quits
+                onLoadStart: false,  // calls function when the image load begins
+                onLoadEnd: false  // calls function when the image finishes loading
+            }, options),
 
-            lightboxSelector = '',
+            targetSelector = '',
             allTargets  = {},
             targets     = $([]),
             target      = $(),
@@ -88,19 +92,35 @@
 
             getGroupName = function (el) {
                 var group = 'default';
-                if (options.groupByClosest) {
-                    group = $(el).closest(options.groupByClosest).data('lightbox') || group;
+                if (typeof el == 'undefined' || !el.length || !options.groupByClosest) {
+                    return group;
+                } else {
+                    return $(el).closest(options.groupByClosest).data('lightbox-group') || group;
                 }
-                return group;
             },
 
             collectTargets = function () {
-                $(lightboxSelector).each(function () {
+                $(targetSelector).each(function () {
                     if (!isTargetValid(this)) return true;
                     var group = getGroupName(this);
                     allTargets[group] = allTargets[group] || $([]);
                     allTargets[group] = allTargets[group].add($(this));
                 });
+            },
+
+            // firstTarget will be .first() of default group if undefined
+            start = function (firstTarget) {
+                if (inProgress) return false;
+                inProgress = false;
+                if (options.dynamicalTargets) collectTargets();
+                targets = allTargets[getGroupName(firstTarget)];
+                if (typeof targets == 'undefined' || !targets.length) {
+                    console.log('no such targets');
+                    return false;
+                }
+                if (options.onStart !== false) options.onStart();
+                target = typeof firstTarget != 'undefined' ? $(firstTarget) : targets.first();
+                loadImage();
             },
 
             getZoom = function () {
@@ -340,28 +360,23 @@
             });
         }
 
-        lightboxSelector = this.selector;
+        targetSelector = this.selector;
 
-        $(document).on('click', lightboxSelector, function (e) {
+        $(document).on('click', targetSelector, function (e) {
             if (!isTargetValid(this)) return true;
             e.preventDefault();
-            if (inProgress) return false;
-            inProgress = false;
-            if (options.dynamicalTargets) collectTargets();
-            targets = allTargets[getGroupName(this)];
-            if (options.onStart !== false) options.onStart();
-            target = $(this);
-            loadImage();
+            start(this);
         });
 
         collectTargets();
 
+        this.start = start;
+        this.collectTargets = collectTargets;
+        this.switchImageLightbox = switchImage;
+
         this.targetsLength = function () {
             return targets.length;
         };
-
-        this.collectTargets = collectTargets;
-        this.switchImageLightbox = switchImage;
 
         this.quitImageLightbox = function () {
             quitLightbox();
