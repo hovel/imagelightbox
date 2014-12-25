@@ -90,20 +90,22 @@
             },
 
             getGroupName = function (el) {
-                var group = 'default';
-                if (typeof el == 'undefined' || !el.length || !options.groupByClosest) {
-                    return group;
+                var $el = $(el),
+                    group = 'default';
+                if ($el.length && options.groupByClosest) {
+                    return $el.closest(options.groupByClosest).data('lightbox-group') || group;
                 } else {
-                    return $(el).closest(options.groupByClosest).data('lightbox-group') || group;
+                    return group;
                 }
             },
 
             collectTargets = function () {
                 $(targetSelector).each(function () {
                     if (!isTargetValid(this)) return true;
-                    var group = getGroupName(this);
+                    var $target = $(this);
+                    var group = getGroupName($target);
                     allTargets[group] = allTargets[group] || $([]);
-                    allTargets[group] = allTargets[group].add($(this));
+                    allTargets[group] = allTargets[group].add($target);
                 });
             },
 
@@ -112,13 +114,14 @@
                 if (inProgress) return false;
                 inProgress = false;
                 if (options.dynamicalTargets) collectTargets();
-                targets = allTargets[getGroupName(firstTarget)];
-                if (typeof targets == 'undefined' || !targets.length) {
+                var $firstTarget = $(firstTarget);
+                targets = $(allTargets[getGroupName($firstTarget)]);
+                if (!targets.length) {
                     console.log('no such targets');
                     return false;
                 }
                 if (options.onStart !== false) options.onStart();
-                target = typeof firstTarget != 'undefined' ? $(firstTarget) : targets.first();
+                target = $firstTarget.length ? $firstTarget : targets.first();
                 loadImage();
             },
 
