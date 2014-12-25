@@ -53,7 +53,6 @@
     $.fn.imageLightbox = function (options)
     {
         var options = $.extend({
-                selector: 'id="imagelightbox"',
                 dynamicalTargets: false,  // recollect targets before open lightbox
                 allowedTypes: 'png|jpg|jpeg|gif',
                 groupByClosest: false,  // '.class' - selector to grouping elements
@@ -209,11 +208,12 @@
                 setTimeout(function () {
                     zoom = getZoom();
 
-                    image = $('<img ' + options.selector + ' />')
+                    image = $('<img id="imagelightbox" />')
                     .attr('src', getImageSrc(target))
                     .load(function () {
-                        image.appendTo('body');
+                        image.hide().appendTo('body');
                         setImage();
+                        image.show();
 
                         var params = {'opacity': 1};
 
