@@ -71,6 +71,7 @@
                          },
                          options),
 
+            lightboxSelector = '',
             allTargets  = {},
             targets     = $([]),
             target      = $(),
@@ -91,6 +92,15 @@
                     group = $(el).closest(options.groupByClosest).data('lightbox') || group;
                 }
                 return group;
+            },
+
+            collectTargets = function () {
+                $(lightboxSelector).each(function () {
+                    if (!isTargetValid(this)) return true;
+                    var group = getGroupName(this);
+                    allTargets[group] = allTargets[group] || $([]);
+                    allTargets[group] = allTargets[group].add($(this));
+                });
             },
 
             getZoom = function () {
@@ -330,28 +340,27 @@
             });
         }
 
-        $(document).on('click', this.selector, function (e) {
+        lightboxSelector = this.selector;
+
+        $(document).on('click', lightboxSelector, function (e) {
             if (!isTargetValid(this)) return true;
             e.preventDefault();
             if (inProgress) return false;
             inProgress = false;
+            if (options.dynamicalTargets) collectTargets();
             targets = allTargets[getGroupName(this)];
             if (options.onStart !== false) options.onStart();
             target = $(this);
             loadImage();
         });
 
-        this.each(function () {
-            if (!isTargetValid(this)) return true;
-            var group = getGroupName(this);
-            allTargets[group] = allTargets[group] || $([]);
-            allTargets[group] = allTargets[group].add($(this));
-        });
+        collectTargets();
 
         this.targetsLength = function () {
             return targets.length;
         };
 
+        this.collectTargets = collectTargets;
         this.switchImageLightbox = switchImage;
 
         this.quitImageLightbox = function () {
