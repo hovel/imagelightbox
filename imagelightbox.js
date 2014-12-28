@@ -381,6 +381,9 @@
             return target;
         };
 
+        this.targetIsSingle = function () {
+            return targets.length < 2;
+        };
         this.targetIsFirst = function () {
             return options.quitOnEnd && targets.index(target) == 0;
         };

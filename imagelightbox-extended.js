@@ -151,6 +151,7 @@
     /* ARROWS */
 
     function arrowsOn(instance) {
+        if (instance.targetIsSingle()) return;
         var $arrows = $(
             '<button type="button" class="imagelightbox-arrow imagelightbox-arrow-left"></button>' +
             '<button type="button" class="imagelightbox-arrow imagelightbox-arrow-right"></button>'
