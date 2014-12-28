@@ -153,6 +153,13 @@
     bottom: 0;
     padding: 0.625em; /* 10 */
 }
+#imagelightbox-caption > a {
+    color: inherit;
+    text-decoration: underline;
+}
+#imagelightbox-caption > span ~ a {
+    margin-left: 30px;
+}
 
 
 /* NAVIGATION */

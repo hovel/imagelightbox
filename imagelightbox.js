@@ -213,10 +213,10 @@
                 setTimeout(function () {
                     zoom = getZoom();
 
-                    image = $('<img id="imagelightbox" style="display: none" />')
+                    image = $('<img id="imagelightbox" />')
                     .attr('src', getImageSrc(target))
                     .load(function () {
-                        image.appendTo('body');
+                        image.hide().appendTo('body');
                         setImage();
 
                         var params = {'opacity': 1};
@@ -340,10 +340,9 @@
 
         $(window).on('resize', setImage);
 
-        if (options.quitOnDocClick)
-        {
-            $(document).on(hasTouch ? 'touchend' : 'click', function (e)
-            {
+        // TODO exclude plugins
+        if (options.quitOnDocClick) {
+            $(document).on(hasTouch ? 'touchend' : 'click', function (e) {
                 if (image.length && !$(e.target).is(image)) quitLightbox();
             })
         }
@@ -378,8 +377,15 @@
         this.collectTargets = collectTargets;
         this.switchImageLightbox = switchImage;
 
-        this.targetsLength = function () {
-            return targets.length;
+        this.getTarget = function () {
+            return target;
+        };
+
+        this.targetIsFirst = function () {
+            return options.quitOnEnd && targets.index(target) == 0;
+        };
+        this.targetIsLast = function () {
+            return options.quitOnEnd && targets.index(target) == targets.length - 1;
         };
 
         this.quitImageLightbox = function () {

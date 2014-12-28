@@ -11,7 +11,9 @@
         var options = options || {},
             plugins = plugins || ['overlay', 'closeButton', 'arrows', 'activityIndicator'],
             extensions = {
-                quitOnDocClick: plugins.indexOf('closeButton') == -1,
+                quitOnDocClick: plugins.indexOf('closeButton') == -1 &&
+                                plugins.indexOf('caption') == -1  &&
+                                plugins.indexOf('download') == -1,
                 onStart: function () {
                     if (plugins.indexOf('overlay') != -1) overlayOn();
                     if (plugins.indexOf('closeButton') != -1) closeButtonOn(lightbox);
@@ -37,10 +39,10 @@
                     if (typeof options.onLoadStart != 'undefined') options.onLoadStart();
                 },
                 onLoadEnd: function () {
-                    if (plugins.indexOf('caption') != -1) captionOn();
+                    if (plugins.indexOf('caption') != -1) captionOn(lightbox, plugins.indexOf('download') != -1);
                     if (plugins.indexOf('navigation') != -1) navigationUpdate(selector);
                     if (plugins.indexOf('activityIndicator') != -1) activityIndicatorOff();
-                    if (plugins.indexOf('arrows') != -1) $('.imagelightbox-arrow').css({'display': 'block'});
+                    if (plugins.indexOf('arrows') != -1) arrowsUpdate(lightbox);
 
                     if (typeof options.onLoadEnd != 'undefined') options.onLoadEnd();
                 }
@@ -91,12 +93,16 @@
 
     /* CAPTION */
 
-    // TODO can't work with zoom
-    function captionOn() {
-        var description = $('a[href="' + $('#imagelightbox').attr('src') + '"] img').attr('alt');
-        if(description.length > 0) {
-            $('<div id="imagelightbox-caption">' + description + '</div>').appendTo('body');
+    function captionOn(instance, allowDownloading) {
+        var out = '',
+            $target = instance.getTarget(),
+            caption = $target.attr('title') || $target.find('img').attr('alt') || '';
+        if (caption.length > 0) out += '<span>' + caption + '</span>';
+        if (allowDownloading) {
+            var href = $target.data('original') || $target.attr('href');
+            out += '<a href="' + href + '" download="' + caption + '">Скачать</a>';
         }
+        if (out.length > 0) $('<div id="imagelightbox-caption">' + out + '</div>').appendTo('body');
     }
     function captionOff() {
         $('#imagelightbox-caption').remove();
@@ -145,28 +151,24 @@
     /* ARROWS */
 
     function arrowsOn(instance) {
-        if (instance.targetsLength() < 2) {
-            return;
-        }
-
         var $arrows = $(
             '<button type="button" class="imagelightbox-arrow imagelightbox-arrow-left"></button>' +
             '<button type="button" class="imagelightbox-arrow imagelightbox-arrow-right"></button>'
         );
-
-        $arrows.appendTo('body');
-
-        $arrows.on('click touchend', function (e) {
+        $arrows.hide().appendTo('body');
+        $arrows.on('click touchend pointerup MSPointerUp', function (e) {
             e.preventDefault();
-
             if ($(this).hasClass('imagelightbox-arrow-left')) {
                 instance.switchImageLightbox('left');
             } else {
                 instance.switchImageLightbox('right');
             }
-
             return false;
         });
+    }
+    function arrowsUpdate(instance) {
+        $('.imagelightbox-arrow-left').toggle(!instance.targetIsFirst());
+        $('.imagelightbox-arrow-right').toggle(!instance.targetIsLast());
     }
     function arrowsOff() {
         $('.imagelightbox-arrow').remove();
