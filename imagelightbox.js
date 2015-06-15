@@ -135,12 +135,19 @@
             },
 
             getImageSrc = function (target) {
-                var src = target.attr('href');
-                if (zoom == 1) {
-                    return src;
+                var url = target.attr('href');
+                if (url.indexOf('svg', url.length - 3) !== -1) {
+                    return url;
                 }
-                var suffix = '.' + src.split('.').slice(-1)[0];
-                return src.replace(suffix, '@' + zoom + 'x' + suffix);
+                // ([^@]+) capture all until @ if exists, otherwise until .jpg
+                // (?:@[0-9]+\.?[0-9]?x)? throw away @ integer+ .? fractional? x
+                // (\.[^.]{1,4}) capture extension with .
+                var parts = url.split(/([^@]+)(?:@[0-9]+\.?[0-9]?x)?(\.[^.]{1,4})/i);
+                if (zoom === 1) {
+                    return parts[1] + parts[2];
+                } else {
+                    return parts[1] + '@' + zoom + 'x' + parts[2];
+                }
             },
 
             setImage = function ()
@@ -239,12 +246,15 @@
                         if (options.preloadNext > 0) {
                             for (var i = 1; i <= options.preloadNext; i++) {
                                 var nextTargetIndex = targetIndex + i * directionLoad;
-                                if (nextTargetIndex > targets.length - 1) {
+                                if (nextTargetIndex >= targets.length) {
                                     nextTargetIndex = nextTargetIndex - targets.length;
                                 } else if (nextTargetIndex < 0) {
                                     nextTargetIndex = nextTargetIndex + targets.length;
                                 }
                                 var nextTarget = targets.eq(nextTargetIndex);
+                                if (!nextTarget.length) {
+                                    break;
+                                }
                                 $('<img />').attr('src', getImageSrc(nextTarget)).load();
                             }
                         }
