@@ -62,6 +62,8 @@
                                         // attribute with slideshow number or another divider
                 zoomScale: [],  // [2, 3] - HiDPI alternatives list, alternative has
                                 // same address with special suffix, @2x.png for example
+                maxWidth: 0,  // in pixels
+                maxHeight: 0,  // in pixels
                 animationSpeed: 250,
                 preloadNext: 1,  // silently preload the next _ images
                 enableKeyboard: true,  // enable keyboard shortcuts (arrows Left/Right and Esc)
@@ -163,6 +165,16 @@
                 {
                     imageWidth   = tmpImage.width / zoom;
                     imageHeight  = tmpImage.height / zoom;
+
+                    if (imageWidth > options.maxWidth) {
+                        imageHeight = imageHeight / (imageWidth / options.maxWidth);
+                        imageWidth = options.maxWidth;
+                    }
+
+                    if (imageHeight > options.maxHeight) {
+                        imageWidth = imageWidth / (imageHeight / options.maxHeight);
+                        imageHeight = options.maxHeight;
+                    }
 
                     if (imageWidth > screenWidth || imageHeight > screenHeight)
                     {
