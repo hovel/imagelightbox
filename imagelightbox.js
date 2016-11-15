@@ -166,12 +166,12 @@
                     imageWidth   = tmpImage.width / zoom;
                     imageHeight  = tmpImage.height / zoom;
 
-                    if (imageWidth > options.maxWidth) {
+                    if (options.maxWidth && imageWidth > options.maxWidth) {
                         imageHeight = imageHeight / (imageWidth / options.maxWidth);
                         imageWidth = options.maxWidth;
                     }
 
-                    if (imageHeight > options.maxHeight) {
+                    if (options.maxHeight && imageHeight > options.maxHeight) {
                         imageWidth = imageWidth / (imageHeight / options.maxHeight);
                         imageHeight = options.maxHeight;
                     }
